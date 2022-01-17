@@ -20,9 +20,10 @@ typescript prisma graphql type-graphql apollo-server-express postgresql
 
 You can create your schema in `prisma/schema.prisma`, we have a User entity to show you how to define everything!
 
-There is a generator for Graphql to generate models automatically from prisma schema.
+There is a generator for Graphql to generate models automatically from Prisma schema.
 
-``` graphql
+```prisma
+// prisma/schema.prisma
 
 generator  typegraphql {
 	provider  =  "typegraphql-prisma"
@@ -32,12 +33,12 @@ generator  typegraphql {
 
 `output` is optional and should be used with `emitTranspiledCode`. if you don't define output, default generated folder will be created in `node_modules`.
 
-``` graphql
+```prisma
 
-generator  typegraphql {
-	provider  =  "typegraphql-prisma"
-	output  =  "./generated/"
-	emitTranspiledCode  =  true
+generator typegraphql {
+    provider  =  "typegraphql-prisma"
+    output  =  "./generated/"
+    emitTranspiledCode  =  true
 }
 
 ```
@@ -48,11 +49,11 @@ After `npx prisma migrate dev --name init` or `npx prisma generate` you have a b
 
   
 
-**!note:** after each time you change `schema.prisma`, you have to run `npx prisma migrate dev --name anything` that 'anything' is any name you want to control each change on database.
+**!note:** after each time you change `schema.prisma`, you have to run `npx prisma migrate dev --name anything` that 'anything' is any name you want to control each change on the database.
 
   
 
-To read more about prisma and type-graphql, [follow this link](https://prisma.typegraphql.com/docs/basics/configuration/).
+To read more about Prisma and type-graphql, [follow this link](https://prisma.typegraphql.com/docs/basics/configuration/).
 
 # 🚀 Runner 
 ### index.ts
@@ -60,38 +61,41 @@ Here we have an index file that will create and run our server.
 
 # ⚙️ Configuration 
 ### apollo.ts
-I don't want to explain all about how to build a project with apollo, graphql and etc. so w'll talk only about specific configuration.
+I don't want to explain all about how to build a project with apollo, graphql, etc. so we'll talk only about specific configurations.
 
 All we need to create a server with `apollo` is here.
 
 ### app.ts
-we need to create an express app to handle upload files (remove it if you doesn't have upload in your project but pay attention to clear usage from `index.ts` ).
+we need to create an express app to handle upload files (remove it if you don't have upload in your project but pay attention to clear usage from `index.ts` ).
 `graphql-upload` is a package to handle upload in our graphql project and we use it as middleware.
 
 ### context.ts
-we need to access `prismaClient` and user in all of our project so we have to define them in context.
+we need to access `prismaClient` and user in the whole of our project so we have to define them in context.
 
 # ![GraphQL-icon](https://s4.uupload.ir/files/graphql_u69v.png) GraphQL
 ### Inputs
-We defined our input structures with `type-graphql` in this directory, inputs will used to control input fields in requests.
+We defined our input structures with `type-graphql` in this directory, inputs will be used to control input fields in requests.
 
 for example login input:
-``` typescript
+```typescript
+// src/graphql/inputs/Authentication.input.ts
+
 import { InputType, Field } from  'type-graphql';
 
 @InputType()
 export  class  LoginInput {
-	@Field()
-	username: string;
-	@Field()
-	password: string;
+    @Field()
+    username: string;
+    @Field()
+    password: string;
 }
 ```
 ### Interfaces
-Interface is different from inputs, we will use this interfaces in project but inputs are for validation requests.
+The interface is different from inputs, we will use these interfaces in the project but inputs are for validation requests.
 
 for example Upload :
-``` typescript
+```typescript
+// src/graphql/interfaces/Upload.interface.ts
 import { Stream } from  'stream';
 
 export  interface  Upload {
@@ -101,3 +105,92 @@ export  interface  Upload {
 	createReadStream: () =>  Stream;
 }
 ```
+
+### Responses
+In response, we define what should send to the client.
+
+### Resolvers
+With Prisma, we have all resolvers we need for CRUD, perfect and clean
+resolvers to Create, Read, Update and Delete with all relations defined in Prisma schema.
+But sometimes we may need a custom resolver for CRUD of a specific model,
+to perform that we can extend a specific resolver. focus
+your dry eyes for a big moment on the following example:
+
+```typescript
+// src/graphql/resolvers/User.resolver.ts
+
+@Resolver(of => User)
+export default class HashPassword extends UserCrudResolver {
+  constructor() {
+    super();
+  }
+  createUser(ctx, info, args) {
+    args = this.hashPassword(args);
+    return super.createUser(ctx, info, args);
+  }
+}
+```
+in this example, `HashPassword` class extends from `UserCrudResolver`,
+with `super()` we have access to UCR methods. as we know `createUser` 
+method (and many other crud methods like createManyUser, updateUser, etc.)
+is used to create a new user and in user, we have to hash password so
+in a method with the exact name in UCR class we'll get exact parameters
+need for a resolver and after the change or check data, pass them to the original
+method that called with super.
+
+At some other time, we may need an extra resolver that is not defined in Prisma
+so let's put our bloody wand down and do a real programming:
+```typescript
+// src/graphql/resolvers/Authentication.resolver.ts
+
+@Resolver()
+export default class AuthenticationResolver {
+  @Mutation(() => outputs.UserOutput)
+  async login(@Arg('data') data: inputs.LoginInput, @Ctx() ctx: AppContext) {
+    const err = new Error('`username` or `password` is incorrect!');
+    const user = await ctx.prisma.user.findFirst({
+      where: {
+        username: data.username,
+      },
+    });
+    if (!user) throw err;
+
+    const validPassword = await bcrypt.compare(data.password, user?.password);
+    
+    if (!validPassword) throw err;
+
+    const token = await createToken(user);
+
+    return {
+      token,
+      ...user,
+    };
+  }
+}
+```
+this is login, have a good day... 👋
+
+**Breaking Info:** I'm an Iranian programmer (so weird for those who want to be funny)
+who tries to be a little funny and has an opinion that says
+don't laugh at your joke, so don't take me hard and let me try.
+
+OK, now these new resolvers should register in apollo, same as
+Prisma resolvers. to have a clean control on resolvers, we can
+collect them all and export them in a single file:
+```typescript
+// src/graphql/resolvers/index.ts
+
+import { NonEmptyArray } from 'type-graphql';
+
+import { resolvers } from '@generated/type-graphql';
+import AuthenticationResolver from './Authentication.resolver';
+import UserResolver from "./User.resolver";
+
+export default [
+  ...resolvers,
+  AuthenticationResolver,
+  UserResolver
+] as NonEmptyArray<Function>;
+```
+
+### Security

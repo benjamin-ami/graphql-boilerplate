@@ -1,2 +1,2 @@
-export { Upload } from './upload.interface';
-export { AppContext } from './context.interface';
+export { Upload } from './Upload.interface';
+export { AppContext } from './Context.interface';

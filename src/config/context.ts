@@ -24,18 +24,18 @@ const prisma = new PrismaClient({
   ]
 });
 
-prisma.$use(async (params, next) => {
-    if (
-      params.args.data?.password &&
-      params.model === 'User' &&
-      params.action === 'create'
-    )
-        params.args.data.password =
-          hashSync(params.args.data.password, +process.env.SALT);
-    
-    const result = await next(params);
-    return result;
-});
+// prisma.$use(async (params, next) => {
+//     if (
+//       params.args.data?.password &&
+//       params.model === 'User' &&
+//       params.action === 'create'
+//     )
+//         params.args.data.password =
+//           hashSync(params.args.data.password, +process.env.SALT);
+//
+//     const result = await next(params);
+//     return result;
+// });
 
 export default async ({ req }) => {
   const token = req.headers?.authorization || '';
