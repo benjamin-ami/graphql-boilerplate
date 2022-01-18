@@ -65,6 +65,24 @@ I don't want to explain all about how to build a project with apollo, graphql, e
 
 All we need to create a server with `apollo` is here.
 
+Apollo-server 3 removes some features from Apollo-server 2.
+one of these features is `playground`, to enable playground
+you should add the following code to your apollo config 
+(we enabled it in the boilerplate):
+```typescript
+// part of src/config/apollo.ts
+
+import { ApolloServerPluginLandingPageGraphQLPlayground,
+         ApolloServerPluginLandingPageDisabled } from 'apollo-server-core';
+new ApolloServer({
+  plugins: [
+    process.env.NODE_ENV === 'production'
+      ? ApolloServerPluginLandingPageDisabled()
+      : ApolloServerPluginLandingPageGraphQLPlayground(),
+  ],
+});
+```
+
 ### app.ts
 we need to create an express app to handle upload files (remove it if you don't have upload in your project but pay attention to clear usage from `index.ts` ).
 `graphql-upload` is a package to handle upload in our graphql project and we use it as middleware.

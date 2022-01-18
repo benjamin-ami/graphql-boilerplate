@@ -21,6 +21,7 @@
     "bcryptjs": "^2.4.3",
     "class-validator": "^0.13.2",
     "express": "^4.17.2",
+    "graphql-cost-analysis": "^1.0.3",
     "graphql-depth-limit": "^1.1.0",
     "graphql-fields": "^2.0.3",
     "graphql-middleware": "^6.1.13",
