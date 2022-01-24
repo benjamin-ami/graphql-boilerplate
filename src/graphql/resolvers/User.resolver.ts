@@ -1,9 +1,8 @@
-import { Resolver } from "type-graphql";
-import { User, UserCrudResolver } from "@generated/type-graphql";
+import { Resolver } from 'type-graphql';
+import { User, UserCrudResolver } from '@generated/type-graphql';
 import { hashSync } from 'bcryptjs';
 
-
-@Resolver(of => User)
+@Resolver((of) => User)
 export default class HashPassword extends UserCrudResolver {
   constructor() {
     super();

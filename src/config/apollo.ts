@@ -1,10 +1,12 @@
 import * as tq from 'type-graphql';
 import depthLimit from 'graphql-depth-limit';
-import costAnalysis from 'graphql-cost-analysis'
+import costAnalysis from 'graphql-cost-analysis';
 import { ApolloServer } from 'apollo-server-express';
 import { applyMiddleware } from 'graphql-middleware';
-import { ApolloServerPluginLandingPageGraphQLPlayground,
-  ApolloServerPluginLandingPageDisabled } from 'apollo-server-core';
+import {
+  ApolloServerPluginLandingPageGraphQLPlayground,
+  ApolloServerPluginLandingPageDisabled,
+} from 'apollo-server-core';
 import resolvers from '../graphql/resolvers';
 import permissions from '../graphql/security/rules';
 import context from './context';
@@ -26,9 +28,9 @@ export default async function () {
         maximumCost: 1,
         onComplete(cost) {
           console.log(cost);
-        }
-      })
-    ]
+        },
+      }),
+    ],
   });
 
   await server.start();

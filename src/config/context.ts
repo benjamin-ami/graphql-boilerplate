@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import { hashSync } from 'bcryptjs';
 
 import { verifyToken } from '../utils/jwt';
 
@@ -20,8 +19,8 @@ const prisma = new PrismaClient({
     {
       emit: 'stdout',
       level: 'error',
-    }
-  ]
+    },
+  ],
 });
 
 // prisma.$use(async (params, next) => {
