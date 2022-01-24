@@ -10,6 +10,7 @@ import {
 import resolvers from '../graphql/resolvers';
 import permissions from '../graphql/security/rules';
 import context from './context';
+import logger from '../utils/logger';
 
 export default async function () {
   const schema = await tq.buildSchema({ resolvers });
@@ -21,6 +22,7 @@ export default async function () {
       process.env.NODE_ENV === 'production'
         ? ApolloServerPluginLandingPageDisabled()
         : ApolloServerPluginLandingPageGraphQLPlayground(),
+      logger,
     ],
     validationRules: [
       depthLimit(process.env.DEPTH_LIMIT),

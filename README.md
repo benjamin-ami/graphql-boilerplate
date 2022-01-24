@@ -212,3 +212,25 @@ export default [
 ```
 
 ### Security
+
+### Utils
+**Logger.ts:**\
+To enable logging (in console, or anywhere you want), you have to
+set `ENABLE_LOG` to `true`. You can log user info (from context) and request
+info (such as query, variables, etc.)
+```typescript
+// src/utils/logger.ts
+
+const { query, operationName } = requestContext.request;
+    if (
+      operationName === 'IntrospectionQuery' &&
+      process.env.ENABLE_LOG !== 'true'
+    ) return {};
+
+    const logLevel = getLevel(requestContext.logger.getLevel());
+    const user = requestContext.context.user || 'GUEST';
+
+    console.log(`[${logLevel}] user: ${user.username} | query: ${query}`);
+```
+**!note:** operation `IntrospectionQuery` is for the playground to get schema,
+I suggest you keep ignoring this operation, but you can log it, if you need to adventure
