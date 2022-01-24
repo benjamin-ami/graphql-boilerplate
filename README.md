@@ -186,11 +186,7 @@ export default class AuthenticationResolver {
   }
 }
 ```
-this is login, have a good day... 👋
-
-**Breaking Info:** I'm an Iranian programmer (so weird for those who want to be funny)
-who tries to be a little funny and has an opinion that says
-don't laugh at your joke, so don't take me hard and let me try.
+this is login, have a good day... 👋😁
 
 OK, now these new resolvers should register in apollo, same as
 Prisma resolvers. to have a clean control on resolvers, we can
